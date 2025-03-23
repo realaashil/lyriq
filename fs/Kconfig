@@ -8,6 +8,13 @@ menu "File systems"
 config DCACHE_WORD_ACCESS
        bool
 
+config FELICA_MOUNT_BLOCK
+	bool "Block mount sdcard to system path"
+	default n
+	help
+	  Mounts on "/system", "/system_ext", "/product", "/vendor" should be blocked
+	  in the root environment.
+
 if BLOCK
 
 config FS_IOMAP
@@ -237,6 +244,7 @@ source "fs/orangefs/Kconfig"
 source "fs/adfs/Kconfig"
 source "fs/affs/Kconfig"
 source "fs/ecryptfs/Kconfig"
+source "fs/sdcardfs/Kconfig"
 source "fs/hfs/Kconfig"
 source "fs/hfsplus/Kconfig"
 source "fs/befs/Kconfig"

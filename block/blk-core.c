@@ -45,6 +45,7 @@
 #include "blk-mq.h"
 #include "blk-mq-sched.h"
 #include "blk-rq-qos.h"
+#include "mtk_mmc_block.h"
 
 #ifdef CONFIG_DEBUG_FS
 struct dentry *blk_debugfs_root;
@@ -413,7 +414,7 @@ void blk_sync_queue(struct request_queue *q)
 	if (q->mq_ops) {
 		struct blk_mq_hw_ctx *hctx;
 		int i;
-
+		mt_bio_queue_free(current);
 		queue_for_each_hw_ctx(q, hctx, i)
 			cancel_delayed_work_sync(&hctx->run_work);
 	} else {
@@ -2575,11 +2576,23 @@ blk_qc_t submit_bio(struct bio *bio)
 
 		if (unlikely(block_dump)) {
 			char b[BDEVNAME_SIZE];
-			printk(KERN_DEBUG "%s(%d): %s block %Lu on %s (%u sectors)\n",
-			current->comm, task_pid_nr(current),
-				op_is_write(bio_op(bio)) ? "WRITE" : "READ",
-				(unsigned long long)bio->bi_iter.bi_sector,
-				bio_devname(bio, b), count);
+			// Begin Motorola, zhangp5, 08/09/2021, IKSWR-121424
+			if(unlikely(block_dump > 1)){
+				if(op_is_write(bio_op(bio)) && count > 40){
+					printk(KERN_DEBUG "%s(%d): %s block %Lu on %s (%u sectors)\n",
+					current->comm, task_pid_nr(current),
+						op_is_write(bio_op(bio)) ? "WRITE" : "READ",
+						(unsigned long long)bio->bi_iter.bi_sector,
+						bio_devname(bio, b), count);
+				}
+			}else{
+				printk(KERN_DEBUG "%s(%d): %s block %Lu on %s (%u sectors)\n",
+				current->comm, task_pid_nr(current),
+					op_is_write(bio_op(bio)) ? "WRITE" : "READ",
+					(unsigned long long)bio->bi_iter.bi_sector,
+					bio_devname(bio, b), count);
+			}
+			// End IKSWR-121424
 		}
 	}
 
